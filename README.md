@@ -8,7 +8,7 @@ Targets Level<br>
 Difference<br>
 Mana per tick (2 seconds)<br>
 Debuff Counter<br>
-Monitor for Curse of Elements, Curse of Shadows, Curse of Recklessness, Winter's Chill (Red Missing / Green Debuffed<br>
+Monitor for Curse of Elements, Curse of Shadows, Curse of Recklessness, Winter's Chill (Red Missing / Green Debuffed)<br>
 Your Resistances<br>
 Your Crit Changes (For each spell class)<br>
 Your Spell Damage (For each spell class)<br>
