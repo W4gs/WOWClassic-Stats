@@ -423,7 +423,7 @@ function()
         tblTextOut[12] = tblColors["Red"] .. " Fire: " .. tblPlayerStats["FireHitColor"]  .. tblPlayerStats["FireHit"] .. "|r% ";
         tblTextOut[13] = tblColors["Blue"] .. " Frost: " .. tblPlayerStats["FrostHitColor"]  .. tblPlayerStats["FrostHit"] .. "|r% ";
         
-        -- Warlock: Fire, Shadow
+    -- Warlock: Fire, Shadow
     elseif (tblPlayerStats["Class"] == "Warlock") then
         tblPlayerStats["FireHit"] = tblPlayerStats["FireHit"] - HitRequired;
         tblPlayerStats["ShadowHit"] = tblPlayerStats["ShadowHit"] - HitRequired;
