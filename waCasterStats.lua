@@ -8,7 +8,7 @@ function()
     if (time() > WeakAuras.CCSNextGlobalUpdate) then
         WeakAuras.CCSNextGlobalUpdate = time() + 1;
     else
-        return WeakAuras.CCSPreviousGlobalResult;
+        return "";
     end
     
     local playerClass, _, classID = UnitClass("player");
