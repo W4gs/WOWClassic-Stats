@@ -145,6 +145,57 @@ function()
     end
 end
 
+-- Do not remove this comment, it is part of this trigger: ClassicDurability
+function()
+    if (not aura_env.config["CCHideDurability"]) then
+        if (tblPlayerStats and tblColors) then
+            if not (WeakAuras.CCSNextDuraUpdate) then
+                WeakAuras.CCSNextDuraUpdate = time() + 15;
+                WeakAuras.CCSPreviousDuraResult = "Waiting for Update!";
+                return WeakAuras.CCSPreviousDuraResult;
+            end
+            
+            if (time() > WeakAuras.CCSNextDuraUpdate) then
+                WeakAuras.CCSNextDuraUpdate = time() + 15;
+            else
+                return WeakAuras.CCSPreviousDuraResult;
+            end
+            
+            local RetVal = "";
+            local MaxDura = 0;
+            local CurDura = 0;
+            
+            for i=1,19 do
+                local current, maximum = GetInventoryItemDurability(i);
+                
+                if ((current) and (maximum)) then
+                    MaxDura = MaxDura + maximum;
+                    CurDura = CurDura + current;
+                end
+            end
+            
+            local MyDura = tonumber(format("%.2f", ((CurDura/MaxDura)*100)));
+            local DuraColor = "";
+            
+            if (MyDura == 100) then
+                DuraColor = tblColors["Blue"];
+            elseif ((MyDura >= 50) and (MyDura <= 99)) then
+                DuraColor = tblColors["Green"];
+            elseif ((MyDura < 50) and (MyDura > 20)) then
+                DuraColor = tblColors["Yellow"];
+            elseif (MyDura <= 20) then
+                DuraColor = tblColors["Red"];
+            end
+            
+            RetVal = "Durability: " .. DuraColor .. MyDura .. "|r %";
+            
+            WeakAuras.CCSPreviousDuraResult = RetVal;
+            
+            return RetVal;
+        end
+    end
+end
+
 -- Do not remove this comment, it is part of this trigger: ClassicRegen
 function()
     if (not aura_env.config["CCHideRegen"]) then
@@ -232,7 +283,7 @@ function()
             local dCOR = tblColors["Red"];
             local dWC = tblColors["Red"];
             local dSV = tblColors["Red"];
-	    local dFF = tblColors["Red"];
+            local dFF = tblColors["Red"];
             
             for i=1,40 do 
                 local D = UnitDebuff("target",i); 
@@ -253,9 +304,9 @@ function()
                     if (D == "Shadow Vulnerability") then
                         dSV = tblColors["Green"];
                     end
-		    if (D == "Faerie Fire") then
-			dFF = tblColors["Green"];
-		    end
+                    if (D == "Faerie Fire") then
+                        dFF = tblColors["Green"];
+                    end
                 end 
             end
             
@@ -455,3 +506,6 @@ function ()
     
     return RetVal;
 end
+
+
+
