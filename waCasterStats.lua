@@ -3,6 +3,7 @@ function()
     if not (WeakAuras.CCSNextGlobalUpdate) then
         WeakAuras.CCSNextGlobalUpdate = time() + 1;
         WeakAuras.CCSPreviousGlobalResult = "Waiting for Update!";
+        return WeakAuras.CCSPreviousGlobalResult;
     end
     
     if (time() > WeakAuras.CCSNextGlobalUpdate) then
@@ -112,150 +113,165 @@ function()
         tblPlayerStats["TargetLevel"] = tblPlayerStats["Level"] + 3;
         tblPlayerStats["LevelDifference"] = tblPlayerStats["TargetLevel"] - tblPlayerStats["Level"];
     end
-    
-    return "";
 end
 
 -- Do not remove this comment, it is part of this trigger: ClassicLevelStats
 function()
     if (not aura_env.config["CCHideLevelStats"]) then
-        local RetVal = "";
-        local tblTextOut = { };
-        
-        if (tblPlayerStats["LevelDifference"] <= 0) then
-            tblPlayerStats["LevelDifferenceColor"] = tblColors["Green"]
-        elseif (tblPlayerStats["LevelDifference"] == 1) then
-            tblPlayerStats["LevelDifferenceColor"] = tblColors["Green"]
-        elseif (tblPlayerStats["LevelDifference"] == 2) then
-            tblPlayerStats["LevelDifferenceColor"] = tblColors["Yellow"]
-        elseif (tblPlayerStats["LevelDifference"] == 3) then
-            tblPlayerStats["LevelDifferenceColor"] = tblColors["Yellow"]
-        elseif (tblPlayerStats["LevelDifference"] == 4) then
-            tblPlayerStats["LevelDifferenceColor"] = tblColors["Red"]
-        elseif (tblPlayerStats["LevelDifference"] >= 5) then
-            tblPlayerStats["LevelDifferenceColor"] = tblColors["Red"]
+        if (tblPlayerStats and tblColors) then
+            local RetVal = "";
+            local tblTextOut = { };
+            
+            if (tblPlayerStats["LevelDifference"] <= 0) then
+                tblPlayerStats["LevelDifferenceColor"] = tblColors["Green"]
+            elseif (tblPlayerStats["LevelDifference"] == 1) then
+                tblPlayerStats["LevelDifferenceColor"] = tblColors["Green"]
+            elseif (tblPlayerStats["LevelDifference"] == 2) then
+                tblPlayerStats["LevelDifferenceColor"] = tblColors["Yellow"]
+            elseif (tblPlayerStats["LevelDifference"] == 3) then
+                tblPlayerStats["LevelDifferenceColor"] = tblColors["Yellow"]
+            elseif (tblPlayerStats["LevelDifference"] == 4) then
+                tblPlayerStats["LevelDifferenceColor"] = tblColors["Red"]
+            elseif (tblPlayerStats["LevelDifference"] >= 5) then
+                tblPlayerStats["LevelDifferenceColor"] = tblColors["Red"]
+            end
+            
+            RetVal = "C (" ..  tblPlayerStats["Level"] .. ") ";
+            RetVal = RetVal .. "T (" .. tblPlayerStats["TargetLevel"] .. ") ";
+            RetVal = RetVal .. "D (" .. tblPlayerStats["LevelDifferenceColor"] .. tblPlayerStats["LevelDifference"] .. "|r)";
+            
+            return RetVal;
         end
-        
-        RetVal = "C (" ..  tblPlayerStats["Level"] .. ") ";
-        RetVal = RetVal .. "T (" .. tblPlayerStats["TargetLevel"] .. ") ";
-        RetVal = RetVal .. "D (" .. tblPlayerStats["LevelDifferenceColor"] .. tblPlayerStats["LevelDifference"] .. "|r)";
-        
-        return RetVal;
     end
 end
 
 -- Do not remove this comment, it is part of this trigger: ClassicRegen
 function()
     if (not aura_env.config["CCHideRegen"]) then
-        local RetVal = "";
-        
-        tblPlayerStats["Casting"] = 0;
-        tblPlayerStats["Modifiers"] = 0;
-        tblPlayerStats["NotCasting"] = (tblClassRegen[tblPlayerStats["ID"]][1] + (UnitStat("player", 5) / tblClassRegen[tblPlayerStats["ID"]][2]));
-        
-        for i=1,40 do
-            if (UnitBuff("player",i)) then
-                local buffName = select(1, UnitBuff("player",i))
-                
-                -- Mage: Mage Armor (Flat 30%)
-                if (buffName == "Mage Armor") then
-                    tblPlayerStats["Modifiers"] = tblPlayerStats["Modifiers"] + .30;
+        if (tblClassRegen and tblPlayerStats) then
+            local RetVal = "";
+            
+            tblPlayerStats["Casting"] = 0;
+            tblPlayerStats["Modifiers"] = 0;
+            tblPlayerStats["NotCasting"] = (tblClassRegen[tblPlayerStats["ID"]][1] + (UnitStat("player", 5) / tblClassRegen[tblPlayerStats["ID"]][2]));
+            
+            for i=1,40 do
+                if (UnitBuff("player",i)) then
+                    local buffName = select(1, UnitBuff("player",i))
+                    
+                    -- Mage: Mage Armor (Flat 30%)
+                    if (buffName == "Mage Armor") then
+                        tblPlayerStats["Modifiers"] = tblPlayerStats["Modifiers"] + .30;
+                    end
                 end
             end
+            
+            -- Go into the individual talents
+            if (tblPlayerStats["Class"] == "Mage") then
+                -- Arcane Meditation 5/10/15%
+                tblPlayerStats["Modifiers"] = tblPlayerStats["Modifiers"] + ((select(5, GetTalentInfo(1, 12)) * 5) / 100);
+            end
+            
+            tblPlayerStats["Casting"] = tblPlayerStats["NotCasting"] * tblPlayerStats["Modifiers"];
+            
+            if (GetManaRegen() < 1) then
+                RetVal = "MPT: " .. tblColors["Red"] .. format("%.0f", tblPlayerStats["NotCasting"]) .. " (NC)|r " .. tblColors["Green"] .. format("%.0f", tblPlayerStats["Casting"]) .. " (C)|r";
+            else
+                RetVal = "MPT: " .. tblColors["Green"] .. format("%.0f", tblPlayerStats["NotCasting"]) .. " (NC)|r " .. tblColors["Red"] .. format("%.0f", tblPlayerStats["Casting"]) .. " (C)|r";
+            end
+            
+            return RetVal;
         end
-        
-        -- Go into the individual talents
-        if (tblPlayerStats["Class"] == "Mage") then
-            -- Arcane Meditation 5/10/15%
-            tblPlayerStats["Modifiers"] = tblPlayerStats["Modifiers"] + ((select(5, GetTalentInfo(1, 12)) * 5) / 100);
-        end
-        
-        tblPlayerStats["Casting"] = tblPlayerStats["NotCasting"] * tblPlayerStats["Modifiers"];
-        
-        if (GetManaRegen() < 1) then
-            RetVal = "MPT: " .. tblColors["Red"] .. format("%.0f", tblPlayerStats["NotCasting"]) .. " (NC)|r " .. tblColors["Green"] .. format("%.0f", tblPlayerStats["Casting"]) .. " (C)|r";
-        else
-            RetVal = "MPT: " .. tblColors["Green"] .. format("%.0f", tblPlayerStats["NotCasting"]) .. " (NC)|r " .. tblColors["Red"] .. format("%.0f", tblPlayerStats["Casting"]) .. " (C)|r";
-        end
-        
-        return RetVal;
     end
 end
 
 -- Do not remove this comment, it is part of this trigger: ClassicResistances
 function ()
     if (not aura_env.config["CCHideResist"]) then
-        if not (WeakAuras.CCSNextResistUpdate) then
-            WeakAuras.CCSNextResistUpdate = time() + 5;
-            WeakAuras.CCSPreviousResistResult = "Waiting for Update!";
+        if (tblColors and tblPlayerStats) then
+            if not (WeakAuras.CCSNextResistUpdate) then
+                WeakAuras.CCSNextResistUpdate = time() + 5;
+                WeakAuras.CCSPreviousResistResult = "Waiting for Update!";
+                return WeakAuras.CCSPreviousResistResult;
+            end
+            
+            if (time() > WeakAuras.CCSNextResistUpdate) then
+                WeakAuras.CCSNextResistUpdate = time() + 5;
+            else
+                return WeakAuras.CCSPreviousResistResult;
+            end
+            
+            local RetVal = "";
+            
+            tblPlayerStats["FireRES"] = tblColors["Red"] .. select(2, UnitResistance("player", 2)) .. "|r";
+            tblPlayerStats["NatureRES"] = tblColors["Green"] .. select(2, UnitResistance("player", 3)) .. "|r";
+            tblPlayerStats["FrostRES"] = tblColors["Blue"] .. select(2, UnitResistance("player", 4)) .. "|r";
+            tblPlayerStats["ShadowRES"] = tblColors["Shadow"] .. select(2, UnitResistance("player", 5)) .. "|r";
+            tblPlayerStats["ArcaneRES"] = tblColors["Purple"] .. select(2, UnitResistance("player", 6)) .. "|r";
+            
+            RetVal = "Your Resistances:\n " .. tblPlayerStats["FireRES"] .. " " .. tblPlayerStats["NatureRES"] .. " " .. tblPlayerStats["FrostRES"] .. " " .. tblPlayerStats["ShadowRES"] .. " " .. tblPlayerStats["ArcaneRES"];
+            
+            WeakAuras.CCSPreviousResistResult = RetVal;
+            
+            return RetVal;
         end
-        
-        if (time() > WeakAuras.CCSNextResistUpdate) then
-            WeakAuras.CCSNextResistUpdate = time() + 5;
-        else
-            return WeakAuras.CCSPreviousResistResult;
-        end
-        
-        local RetVal = "";
-        
-        tblPlayerStats["FireRES"] = tblColors["Red"] .. select(2, UnitResistance("player", 2)) .. "|r";
-        tblPlayerStats["NatureRES"] = tblColors["Green"] .. select(2, UnitResistance("player", 3)) .. "|r";
-        tblPlayerStats["FrostRES"] = tblColors["Blue"] .. select(2, UnitResistance("player", 4)) .. "|r";
-        tblPlayerStats["ShadowRES"] = tblColors["Shadow"] .. select(2, UnitResistance("player", 5)) .. "|r";
-        tblPlayerStats["ArcaneRES"] = tblColors["Purple"] .. select(2, UnitResistance("player", 6)) .. "|r";
-        
-        RetVal = "Your Resistances:\n " .. tblPlayerStats["FireRES"] .. " " .. tblPlayerStats["NatureRES"] .. " " .. tblPlayerStats["FrostRES"] .. " " .. tblPlayerStats["ShadowRES"] .. " " .. tblPlayerStats["ArcaneRES"];
-        
-        WeakAuras.CCSPreviousResistResult = RetVal;
-        
-        return RetVal;
     end
 end
 
 -- Do not remove this comment, it is part of this trigger: ClassicDebuffs
 function()
     if (not aura_env.config["CCHideDebuffs"]) then
-        local RetVal = "";
-        local tblTextOut = { };
-        
-        local Debuffs=0
-        local colorDebuff = tblColors["Green"];
-        local dCOS = tblColors["Red"];
-        local dCOE = tblColors["Red"];
-        local dCOR = tblColors["Red"];
-        local dWC = tblColors["Red"];
-        
-        for i=1,40 do 
-            local D = UnitDebuff("target",i); 
-            if D then 
-                Debuffs = Debuffs + 1
-                if (D == "Curse of the Elements") then
-                    dCOE = tblColors["Green"];
-                end
-                if (D == "Curse of Shadow") then
-                    dCOS = tblColors["Green"];
-                end
-                if (D == "Winter's Chill") then
-                    dWC = tblColors["Green"];
-                end
-                if (D == "Curse of Recklessness") then
-                    dCOR = tblColors["Green"];
-                end
-            end 
+        if (tblColors and tblPlayerStats) then
+            local RetVal = "";
+            local tblTextOut = { };
+            
+            local Debuffs=0
+            local colorDebuff = tblColors["Green"];
+            local dCOS = tblColors["Red"];
+            local dCOE = tblColors["Red"];
+            local dCOR = tblColors["Red"];
+            local dWC = tblColors["Red"];
+            local dSV = tblColors["Red"];
+			local dFF = tblColors["Red"];
+            
+            for i=1,40 do 
+                local D = UnitDebuff("target",i); 
+                if D then 
+                    Debuffs = Debuffs + 1
+                    if (D == "Curse of the Elements") then
+                        dCOE = tblColors["Green"];
+                    end
+                    if (D == "Curse of Shadow") then
+                        dCOS = tblColors["Green"];
+                    end
+                    if (D == "Winter's Chill") then
+                        dWC = tblColors["Green"];
+                    end
+                    if (D == "Curse of Recklessness") then
+                        dCOR = tblColors["Green"];
+                    end
+                    if (D == "Shadow Vulnerability") then
+                        dSV = tblColors["Green"];
+                    end
+					if (D == "Faerie Fire") then
+						dFF = tblColors["Green"];
+					end
+                end 
+            end
+            
+            if (Debuffs < 25) then
+                colorDebuff = tblColors["Green"]
+            elseif (Debuffs >= 25 and Debuffs <= 35) then
+                colorDebuff = tblColors["Yellow"]
+            elseif (Debuffs > 35) then
+                colorDebuff = tblColors["Red"]
+            end
+            
+            RetVal = "Debuffs: " .. colorDebuff .. Debuffs .. "|r/40\n";
+            RetVal = RetVal .. dCOE .. " CoE|r " .. dCOS .. "CoS|r "  .. dCOR .. "CoR|r " .. dWC .. "WC|r " .. dSV .. "SV|r " .. dFF .. "FF|r";
+            
+            return RetVal;
         end
-        
-        if (Debuffs < 25) then
-            colorDebuff = tblColors["Green"]
-        elseif (Debuffs >= 25 and Debuffs <= 35) then
-            colorDebuff = tblColors["Yellow"]
-        elseif (Debuffs > 35) then
-            colorDebuff = tblColors["Red"]
-        end
-        
-        RetVal = "Debuffs: " .. colorDebuff .. Debuffs .. "|r/40\n";
-        RetVal = RetVal .. dCOE .. " CoE|r " .. dCOS .. "CoS|r "  .. dCOR .. "CoR|r " .. dWC .. "WC|r";
-        
-        return RetVal;
     end
 end
 
@@ -264,6 +280,7 @@ function ()
     if not (WeakAuras.CCSNextUpdate) then
         WeakAuras.CCSNextUpdate = time() + 2;
         WeakAuras.CCSPreviousResult = "Waiting for Update!";
+        return WeakAuras.CCSPreviousResult;
     end
     
     if (time() > WeakAuras.CCSNextUpdate) then
@@ -359,6 +376,7 @@ function ()
     if not (WeakAuras.CCSNextUpdate) then
         WeakAuras.CCSNextUpdate = time() + 2;
         WeakAuras.CCSPreviousResult = "Waiting for Update!";
+        return WeakAuras.CCSPreviousResult;
     end
     
     if (time() > WeakAuras.CCSNextUpdate) then
@@ -437,4 +455,3 @@ function ()
     
     return RetVal;
 end
-
