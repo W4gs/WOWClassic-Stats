@@ -253,9 +253,9 @@ function()
                     if (D == "Shadow Vulnerability") then
                         dSV = tblColors["Green"];
                     end
-					if (D == "Faerie Fire") then
-						dFF = tblColors["Green"];
-					end
+		    if (D == "Faerie Fire") then
+			dFF = tblColors["Green"];
+		    end
                 end 
             end
             
