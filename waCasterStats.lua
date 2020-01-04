@@ -232,7 +232,7 @@ function()
             local dCOR = tblColors["Red"];
             local dWC = tblColors["Red"];
             local dSV = tblColors["Red"];
-			local dFF = tblColors["Red"];
+	    local dFF = tblColors["Red"];
             
             for i=1,40 do 
                 local D = UnitDebuff("target",i); 
